@@ -10,6 +10,10 @@
 #ifndef __usbdrv_h_included__
 #define __usbdrv_h_included__
 
+#ifndef __ASSEMBLER__
+#include <stdint.h>
+#endif
+
 /*
 Hardware Prerequisites:
 =======================
@@ -462,6 +466,9 @@ extern volatile schar   usbRxLen;
 #ifndef USB_CFG_DESCR_PROPS_STRING_SERIAL_NUMBER
 #define USB_CFG_DESCR_PROPS_STRING_SERIAL_NUMBER    0
 #endif
+#ifndef USB_CFG_DESCR_PROPS_STRING_OS_STRING
+#define USB_CFG_DESCR_PROPS_STRING_OS_STRING        0
+#endif
 #ifndef USB_CFG_DESCR_PROPS_HID
 #define USB_CFG_DESCR_PROPS_HID                     0
 #endif
@@ -486,25 +493,25 @@ extern
 #if !(USB_CFG_DESCR_PROPS_DEVICE & USB_PROP_IS_RAM)
 PROGMEM const
 #endif
-char usbDescriptorDevice[];
+uchar usbDescriptorDevice[];
 
 extern
 #if !(USB_CFG_DESCR_PROPS_CONFIGURATION & USB_PROP_IS_RAM)
 PROGMEM const
 #endif
-char usbDescriptorConfiguration[];
+uchar usbDescriptorConfiguration[];
 
 extern
 #if !(USB_CFG_DESCR_PROPS_HID_REPORT & USB_PROP_IS_RAM)
 PROGMEM const
 #endif
-char usbDescriptorHidReport[];
+uchar usbDescriptorHidReport[];
 
 extern
 #if !(USB_CFG_DESCR_PROPS_STRING_0 & USB_PROP_IS_RAM)
 PROGMEM const
 #endif
-char usbDescriptorString0[];
+uchar usbDescriptorString0[];
 
 extern
 #if !(USB_CFG_DESCR_PROPS_STRING_VENDOR & USB_PROP_IS_RAM)
@@ -523,6 +530,12 @@ extern
 PROGMEM const
 #endif
 int usbDescriptorStringSerialNumber[];
+
+extern
+#if !(USB_CFG_DESCR_PROPS_STRING_OS_STRING & USB_PROP_IS_RAM)
+PROGMEM const
+#endif
+int usbDescriptorStringOsString[];
 
 #endif /* __ASSEMBLER__ */
 
@@ -703,6 +716,26 @@ typedef struct usbRequest{
     usbWord_t   wLength;
 }usbRequest_t;
 /* This structure matches the 8 byte setup request */
+
+typedef struct
+{
+    uint32_t dwLength;
+    uint16_t bcdVersion;
+    uint16_t wIndex;
+    uint8_t bCount;
+    uint8_t reserved[7];
+} usbExtCompatHeader_t;
+
+typedef struct
+{
+    usbExtCompatHeader_t header;
+    uint8_t bFirstInterfaceNumber;
+    uint8_t reserved1;
+    char compatibleID[8];
+    char subCompatibleID[8];
+    uint8_t reserved2[6];
+} usbExtCompatDescriptor_t;
+
 #endif
 
 /* bmRequestType field in USB setup:

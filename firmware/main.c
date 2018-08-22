@@ -1,13 +1,13 @@
 /* Name: main.c
- * Project: FabISP Firmware
- * Author: David A. Mellis
- * Based on Work By: Dick Streefland and Christian Starkjohann
- * Creation Date: 2009-11-18
- * Tabsize: 4
- * Copyright: (c) 2006-2008 Dick Streefland
- * Copyright: (c) 2008 by OBJECTIVE DEVELOPMENT Software GmbH
- * License: GNU GPL v2 (see License.txt), GNU GPL v3
- */
+* Project: FabISP Firmware
+* Author: David A. Mellis
+* Based on Work By: Dick Streefland and Christian Starkjohann
+* Creation Date: 2009-11-18
+* Tabsize: 4
+* Copyright: (c) 2006-2008 Dick Streefland
+* Copyright: (c) 2008 by OBJECTIVE DEVELOPMENT Software GmbH
+* License: GNU GPL v2 (see License.txt), GNU GPL v3
+*/
 
 /*
 This example should run on most AVRs with only little changes. No special
@@ -28,23 +28,33 @@ at least be connected to INT0 as well.
 typedef	unsigned char	byte_t;
 typedef	unsigned int	uint_t;
 
+static const usbExtCompatDescriptor_t msExtCompatDescriptor =
+{
+    { sizeof(usbExtCompatDescriptor_t), 0x0100, 0x0004, 1 },
+    0,
+    1,
+    "WINUSB",
+    ""
+};
+
 enum
 {
-	// Generic requests
-	USBTINY_ECHO,		// 0x00: echo test
-	USBTINY_READ,		// 0x01: read byte (wIndex:address)
-	USBTINY_WRITE,		// 0x02: write byte (wIndex:address, wValue:value)
-	USBTINY_CLR,		// 0x03: clear bit (wIndex:address, wValue:bitno)
-	USBTINY_SET,		// 0x04: set bit (wIndex:address, wValue:bitno)
-	// Programming requests
-	USBTINY_POWERUP,	// 0x05: apply power (wValue:SCK-period, wIndex:RESET)
-	USBTINY_POWERDOWN,	// 0x06: remove power from chip
-	USBTINY_SPI,		// 0x07: issue SPI command (wValue:c1c0, wIndex:c3c2)
-	USBTINY_POLL_BYTES,	// 0x08: set poll bytes for write (wValue:p1p2)
-	USBTINY_FLASH_READ,	// 0x09: read flash (wIndex:address)
-	USBTINY_FLASH_WRITE,	// 0x0A: write flash (wIndex:address, wValue:timeout)
-	USBTINY_EEPROM_READ,	// 0x0B: read eeprom (wIndex:address)
-	USBTINY_EEPROM_WRITE,	// 0x0C: write eeprom (wIndex:address, wValue:timeout)
+    // Generic requests
+    USBTINY_ECHO,		// 0x00: echo test
+    USBTINY_READ,		// 0x01: read byte (wIndex:address)
+    USBTINY_WRITE,		// 0x02: write byte (wIndex:address, wValue:value)
+    USBTINY_CLR,		// 0x03: clear bit (wIndex:address, wValue:bitno)
+    USBTINY_SET,		// 0x04: set bit (wIndex:address, wValue:bitno)
+    // Programming requests
+    USBTINY_POWERUP,	// 0x05: apply power (wValue:SCK-period, wIndex:RESET)
+    USBTINY_POWERDOWN,	// 0x06: remove power from chip
+    USBTINY_SPI,		// 0x07: issue SPI command (wValue:c1c0, wIndex:c3c2)
+    USBTINY_POLL_BYTES,	// 0x08: set poll bytes for write (wValue:p1p2)
+    USBTINY_FLASH_READ,	// 0x09: read flash (wIndex:address)
+    USBTINY_FLASH_WRITE,	// 0x0A: write flash (wIndex:address, wValue:timeout)
+    USBTINY_EEPROM_READ,	// 0x0B: read eeprom (wIndex:address)
+    USBTINY_EEPROM_WRITE,	// 0x0C: write eeprom (wIndex:address, wValue:timeout)
+    USBTINY_GET_MS_DESCRIPTOR = GET_MS_DESCRIPTOR,
 };
 
 // ----------------------------------------------------------------------
@@ -200,7 +210,17 @@ extern	usbMsgLen_t	usbFunctionSetup ( byte_t data[8] )
 		*addr |= mask;
 		return 0;
 	}
+    if (req == USBTINY_GET_MS_DESCRIPTOR)
+    {
+		uint_t wIndex = *(uint_t*)&data[4];
+        if (wIndex == 0x0004)
+        {
+            usbMsgPtr = (usbMsgPtr_t)&msExtCompatDescriptor;
+            return sizeof(msExtCompatDescriptor);
+        }
 
+        return 0;
+    }
 	// Programming requests
 	if	( req == USBTINY_POWERUP )
 	{

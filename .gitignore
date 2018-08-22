@@ -1,0 +1,9 @@
+# Visual Studio cache/options directory
+.vs/
+
+# Build results
+*.o
+*.hex
+*.bin
+*.elf
+*.lst
